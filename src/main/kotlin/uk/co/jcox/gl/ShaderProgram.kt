@@ -1,6 +1,7 @@
 package uk.co.jcox.gl
 
 import com.sun.org.apache.xpath.internal.operations.Bool
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL30
 import org.lwjgl.system.MemoryStack
 import org.tinylog.Logger
@@ -85,6 +86,10 @@ class ShaderProgram (
 
     fun uniform(name: String, value: Int) {
         GL30.glUniform1i(getUniformLocation(name), value)
+    }
+
+    fun uniform(name: String, value: Vector3f) {
+        GL30.glUniform3f(getUniformLocation(name), value.x, value.y, value.z)
     }
 
     private fun getUniformLocation(name: String): Int {

@@ -57,6 +57,10 @@ public class WindowManager implements AutoCloseable {
         return GLFW.glfwGetTime();
     }
 
+    public long getWindowHandle() {
+        return this.windowHandle;
+    }
+
     @Override
     public void close() {
         glfwFreeCallbacks(this.windowHandle);

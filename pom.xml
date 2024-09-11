@@ -14,6 +14,7 @@
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <lwjgl.version>3.3.4</lwjgl.version>
         <joml.version>1.10.7</joml.version>
+        <imgui.version>1.87.0</imgui.version>
     </properties>
 
     <repositories>
@@ -137,6 +138,7 @@
             <version>2.0.0</version>
         </dependency>
 
+<!--        Tiny Log-->
         <dependency>
             <groupId>org.tinylog</groupId>
             <artifactId>tinylog-api</artifactId>
@@ -148,7 +150,12 @@
             <version>2.7.0</version>
         </dependency>
 
-        <!--        LWJGL-->
+        <!--        LWJGL and OpenGL-->
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-app</artifactId>
+            <version>${imgui.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>

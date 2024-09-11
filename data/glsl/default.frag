@@ -5,11 +5,11 @@ in vec2 lTexCoord;
 
 out vec4 colour;
 
-uniform float uGreenTint;
+uniform vec3 uTint;
 uniform sampler2D ourTexture;
 
 void main() {
 //    colour = vec4(lFragmentPos * uGreenTint, 1.0f);
-    colour = texture(ourTexture, lTexCoord) * (vec4(lFragmentPos * uGreenTint, 1.0f));
+    colour = texture(ourTexture, lTexCoord) * vec4(uTint, 1.0f);
 
 }

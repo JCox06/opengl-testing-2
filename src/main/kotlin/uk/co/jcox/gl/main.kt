@@ -1,19 +1,22 @@
 package uk.co.jcox.gl
 
+import imgui.ImGui
+import imgui.ImGuiIO
+import imgui.flag.ImGuiConfigFlags
+import imgui.gl3.ImGuiImplGl3
+import imgui.glfw.ImGuiImplGlfw
+import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.Platform
 import org.tinylog.Logger
-import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.math.*
-import kotlin.time.times
 
 fun main() {
 
-    Logger.info {"OS: ${Platform.get()}"}
+    Logger.info {"OS: ${Platform.get()} ${Platform.getArchitecture()}"}
 
     val windowManager = WindowManager()
     windowManager.init(3, 3)
@@ -21,6 +24,18 @@ fun main() {
     val renderer = Renderer()
     renderer.setupRendering()
     renderer.setupDefaultProgram()
+
+
+    //Imgui init
+    ImGui.createContext()
+    val imGUiIO = ImGui.getIO()
+//    imGUiIO.addConfigFlags(ImGuiConfigFlags.ViewportsEnable)
+    val imGuiImpGlfw = ImGuiImplGlfw()
+    val imGuiImpGl3 = ImGuiImplGl3()
+
+    imGuiImpGlfw.init(windowManager.windowHandle, true)
+    imGuiImpGl3.init()
+
 
     //Textrue creation
     val texture = loadTexture("./data/textures/wall.jpg")
@@ -59,19 +74,17 @@ fun main() {
     GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
     GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indices.toIntArray(), GL15.GL_STATIC_DRAW)
 
+
+    val colourArray = floatArrayOf(1.0f, 1.0f, 1.0f)
+
     while (! windowManager.shouldClose()) {
 
         val windowSize = windowManager.windowSize
         renderer.viewport(windowSize.x, windowSize.y)
         renderer.clear()
 
-        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_K)) {
-            renderer.setWireframe(true)
-        } else {
-            renderer.setWireframe(false)
-        }
-
-        renderer.program.uniform("uGreenTint", sin(windowManager.currentTime).toFloat())
+        renderer.setWireframe(windowManager.queryKeyPress(GLFW.GLFW_KEY_K))
+        renderer.program.uniform("uTint", Vector3f(colourArray[0], colourArray[1], colourArray[2]))
         renderer.program.uniform("ourTexture", 0)
 
         //CUSTOM RENDER START
@@ -79,6 +92,31 @@ fun main() {
         GL30.glBindVertexArray(vertexArray)
         GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0)
         //CUSTOM RENDER END
+
+
+        imGuiImpGl3.newFrame()
+        imGuiImpGlfw.newFrame()
+        ImGui.newFrame()
+
+        ImGui.begin("OpenGL Debug Window")
+        ImGui.text("Platform: ${Platform.get()} + ${Platform.getArchitecture()}")
+        ImGui.text("OpenGL version: ${GL11.glGetString(GL11.GL_VERSION)}")
+        ImGui.text("OpenGL Renderer: ${GL11.glGetString(GL11.GL_RENDERER)}")
+        ImGui.text("OpenGL Vendor: ${GL11.glGetString(GL11.GL_VENDOR)}")
+        ImGui.colorEdit3("GreenTint", colourArray)
+
+        ImGui.end()
+
+        ImGui.render()
+        imGuiImpGl3.renderDrawData(ImGui.getDrawData())
+
+        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+            val backupCurrentContext = GLFW.glfwGetCurrentContext();
+            ImGui.updatePlatformWindows();
+            ImGui.renderPlatformWindowsDefault();
+            GLFW.glfwMakeContextCurrent(backupCurrentContext);
+        }
+
 
         windowManager.swapBuffers()
         windowManager.pollEvents()
@@ -89,10 +127,13 @@ fun main() {
 
     GL30.glDeleteVertexArrays(vertexArray)
     GL30.glDeleteBuffers(vertexBuffer)
-
+    imGuiImpGl3.shutdown()
+    imGuiImpGlfw.shutdown()
+    ImGui.destroyContext()
     renderer.close()
     windowManager.close()
 }
+
 
 private fun loadTexture(texturePath: String) : Int {
     val texture = GL11.glGenTextures()
@@ -106,6 +147,8 @@ private fun loadTexture(texturePath: String) : Int {
         val data = STBImage.stbi_load(texturePath, width, height, nrChannels, 0)
         if (data != null) {
             GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGB, width.get(), height.get(), 0, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, data)
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR)
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR)
             GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D)
             STBImage.stbi_image_free(data)
         } else {

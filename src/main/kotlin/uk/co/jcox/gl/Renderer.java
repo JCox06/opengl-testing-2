@@ -1,12 +1,13 @@
 package uk.co.jcox.gl;
 
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLUtil;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
+import org.lwjgl.system.MemoryStack;
 import org.tinylog.Logger;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -22,6 +23,8 @@ public class Renderer implements AutoCloseable {
         Logger.info("OpenGL Renderer has started");
         Logger.info("OpenGL Version: {}", GL11.glGetString(GL11.GL_VERSION));
         Logger.info("OpenGL Vendor: {} ", GL11.glGetString(GL11.GL_VENDOR));
+        Logger.info("OpenGL Renderer: {}", GL11.glGetString(GL11.GL_RENDERER));
+        Logger.info("OpenGL Shading Language: {}", GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
 
         GL11.glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
     }
@@ -57,6 +60,7 @@ public class Renderer implements AutoCloseable {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
     }
+
 
     @Override
     public void close() {
