@@ -1,7 +1,10 @@
 package uk.co.jcox.gl
 
 import com.sun.org.apache.xpath.internal.operations.Bool
+import org.joml.Matrix4f
 import org.joml.Vector3f
+import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import org.lwjgl.system.MemoryStack
 import org.tinylog.Logger
@@ -90,6 +93,13 @@ class ShaderProgram (
 
     fun uniform(name: String, value: Vector3f) {
         GL30.glUniform3f(getUniformLocation(name), value.x, value.y, value.z)
+    }
+
+    fun uniform(name: String, value: Matrix4f) {
+        val location = getUniformLocation(name)
+        val buff = BufferUtils.createFloatBuffer(16)
+        value.get(buff)
+        GL20.glUniformMatrix4fv(location, false, buff)
     }
 
     private fun getUniformLocation(name: String): Int {

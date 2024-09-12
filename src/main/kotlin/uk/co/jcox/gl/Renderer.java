@@ -27,6 +27,7 @@ public class Renderer implements AutoCloseable {
         Logger.info("OpenGL Shading Language: {}", GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
 
         GL11.glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
     public void setupDefaultProgram() {
@@ -50,7 +51,7 @@ public class Renderer implements AutoCloseable {
     }
 
     public void clear() {
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
     }
 
     public void setWireframe(boolean wireframe) {

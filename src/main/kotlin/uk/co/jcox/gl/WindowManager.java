@@ -9,8 +9,6 @@ public class WindowManager implements AutoCloseable {
 
     private long windowHandle;
 
-
-
     public void init(int maj, int min) {
 
         if (! GLFW.glfwInit()) {
@@ -26,8 +24,8 @@ public class WindowManager implements AutoCloseable {
             GLFW.glfwTerminate();
             throw new IllegalStateException("Window must not be null");
         }
-
         GLFW.glfwMakeContextCurrent(this.windowHandle);
+        GLFW.glfwSwapInterval(1);
     }
 
     public boolean queryKeyPress(int glfwKeyCode) {

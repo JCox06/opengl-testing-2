@@ -1,17 +1,21 @@
 package uk.co.jcox.gl
 
 import imgui.ImGui
+import imgui.ImGui.render
 import imgui.ImGuiIO
 import imgui.flag.ImGuiConfigFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
-import org.joml.Vector3f
+import jdk.incubator.vector.VectorOperators
+import org.joml.*
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.Platform
 import org.tinylog.Logger
+import java.lang.Math
+import java.util.Vector
 import kotlin.math.*
 
 fun main() {
@@ -30,11 +34,23 @@ fun main() {
     ImGui.createContext()
     val imGUiIO = ImGui.getIO()
 //    imGUiIO.addConfigFlags(ImGuiConfigFlags.ViewportsEnable)
+    imGUiIO.addConfigFlags(ImGuiConfigFlags.DockingEnable)
+    ImGui.styleColorsLight()
     val imGuiImpGlfw = ImGuiImplGlfw()
     val imGuiImpGl3 = ImGuiImplGl3()
 
     imGuiImpGlfw.init(windowManager.windowHandle, true)
     imGuiImpGl3.init()
+
+    var wireframe = false
+    val newCubePos = floatArrayOf(0.0f, 0.0f, 0.0f)
+    val cubes = mutableListOf<Vector3f>()
+
+    val cameraPos = Vector3f(0.0f, 0.0f, 3.0f)
+    val cameraDir = Vector3f(0.0f, 0.0f, -1.0f)
+    val worldUp = Vector3f(0.0f, 1.0f, 0.0f)
+    val camSpeed = 1.5f
+
 
 
     //Textrue creation
@@ -42,10 +58,47 @@ fun main() {
 
     //Creating the OpenGL geometry for rendering (test)
     val vertices = listOf(
-        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     )
 
     val indices = listOf(
@@ -77,21 +130,52 @@ fun main() {
 
     val colourArray = floatArrayOf(1.0f, 1.0f, 1.0f)
 
+    val projection = Matrix4f().perspective(Math.toRadians(45.0).toFloat(), 4/3f, 0.1f, 100.0f)
+
+    var deltaTime = 0.0f
+    var lastFrameTime = 0.0f
+
     while (! windowManager.shouldClose()) {
+
+        val currentTime = windowManager.currentTime.toFloat()
+        deltaTime = currentTime - lastFrameTime
+        lastFrameTime = currentTime
 
         val windowSize = windowManager.windowSize
         renderer.viewport(windowSize.x, windowSize.y)
         renderer.clear()
 
-        renderer.setWireframe(windowManager.queryKeyPress(GLFW.GLFW_KEY_K))
+//        renderer.setWireframe(windowManager.queryKeyPress(GLFW.GLFW_KEY_K))
+
         renderer.program.uniform("uTint", Vector3f(colourArray[0], colourArray[1], colourArray[2]))
+
+//        val model = Matrix4f()
+//        model.rotate(windowManager.currentTime.toFloat(), Vector3f(1.0f, 1.0f, 1.0f).normalize())
+
+
+        val view = Matrix4f()
+        view.lookAt(cameraPos, cameraPos + cameraDir, worldUp)
+
+        renderer.program.uniform("uView", view)
+        renderer.program.uniform("uProjection", projection)
+
+
         renderer.program.uniform("ourTexture", 0)
 
-        //CUSTOM RENDER START
-        renderer.program.bind()
-        GL30.glBindVertexArray(vertexArray)
-        GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0)
-        //CUSTOM RENDER END
+        cubes.forEach {
+            val model = Matrix4f().translate(it)
+            renderer.program.uniform("uModel", model)
+            renderer.program.bind()
+            GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 36)
+        }
+
+
+//        //CUSTOM RENDER START
+//        renderer.program.bind()
+//        GL30.glBindVertexArray(vertexArray)
+////        GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0)
+//        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 36)
+//        //CUSTOM RENDER END
 
 
         imGuiImpGl3.newFrame()
@@ -100,12 +184,25 @@ fun main() {
 
         ImGui.begin("OpenGL Debug Window")
         ImGui.text("Platform: ${Platform.get()} + ${Platform.getArchitecture()}")
-        ImGui.text("OpenGL version: ${GL11.glGetString(GL11.GL_VERSION)}")
-        ImGui.text("OpenGL Renderer: ${GL11.glGetString(GL11.GL_RENDERER)}")
-        ImGui.text("OpenGL Vendor: ${GL11.glGetString(GL11.GL_VENDOR)}")
-        ImGui.colorEdit3("GreenTint", colourArray)
+        if (ImGui.button("Toggle wireframe ")) {
+            wireframe = !wireframe
+            renderer.setWireframe(wireframe)
+        }
+        ImGui.beginChild("AddCube")
 
+        ImGui.inputFloat3("Cube Pos", newCubePos)
+
+        if (ImGui.button("Add to Scene")) {
+            cubes.add(Vector3f(newCubePos[0], newCubePos[1], newCubePos[2]))
+        }
+
+        ImGui.endChild()
+
+        ImGui.colorEdit3("Colour Array", colourArray)
         ImGui.end()
+
+        ImGui.showMetricsWindow()
+
 
         ImGui.render()
         imGuiImpGl3.renderDrawData(ImGui.getDrawData())
@@ -117,6 +214,28 @@ fun main() {
             GLFW.glfwMakeContextCurrent(backupCurrentContext);
         }
 
+
+        //Process input from WindowManager
+        //Remember to normalize after so you don't move faster when moving diagonally
+        val inputMoveResult = Vector3f(0.0f, 0.0f, 0.0f)
+        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_W)) {
+            inputMoveResult += cameraDir
+        }
+        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_S)) {
+            inputMoveResult -= cameraDir
+        }
+        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_D)) {
+            inputMoveResult += cameraDir.cross(worldUp, Vector3f().normalize())
+        }
+        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_A)) {
+            inputMoveResult -= cameraDir.cross(worldUp, Vector3f().normalize())
+        }
+
+        if (!inputMoveResult.equals(0.0f, 0.0f, 0.0f)) {
+            inputMoveResult.normalize()
+            inputMoveResult.mul(camSpeed * deltaTime)
+            cameraPos+= inputMoveResult
+        }
 
         windowManager.swapBuffers()
         windowManager.pollEvents()
