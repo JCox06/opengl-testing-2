@@ -35,7 +35,7 @@ fun main() {
     val imGUiIO = ImGui.getIO()
 //    imGUiIO.addConfigFlags(ImGuiConfigFlags.ViewportsEnable)
     imGUiIO.addConfigFlags(ImGuiConfigFlags.DockingEnable)
-    ImGui.styleColorsLight()
+    ImGui.styleColorsClassic()
     val imGuiImpGlfw = ImGuiImplGlfw()
     val imGuiImpGl3 = ImGuiImplGl3()
 
@@ -50,6 +50,13 @@ fun main() {
     val cameraDir = Vector3f(0.0f, 0.0f, -1.0f)
     val worldUp = Vector3f(0.0f, 1.0f, 0.0f)
     val camSpeed = 1.5f
+    val camsense = 0.0005f
+
+    var deltaX = 0.0f
+    var deltaY = 0.0f
+
+    var lastX = 0.0f
+    var lastY = 0.0f
 
 
 
@@ -154,6 +161,7 @@ fun main() {
 
 
         val view = Matrix4f()
+
         view.lookAt(cameraPos, cameraPos + cameraDir, worldUp)
 
         renderer.program.uniform("uView", view)
@@ -188,7 +196,8 @@ fun main() {
             wireframe = !wireframe
             renderer.setWireframe(wireframe)
         }
-        ImGui.beginChild("AddCube")
+
+        ImGui.text("Mouse X: ${windowManager.mousePosition.x} Y: ${windowManager.mousePosition.y}")
 
         ImGui.inputFloat3("Cube Pos", newCubePos)
 
@@ -196,13 +205,10 @@ fun main() {
             cubes.add(Vector3f(newCubePos[0], newCubePos[1], newCubePos[2]))
         }
 
-        ImGui.endChild()
-
         ImGui.colorEdit3("Colour Array", colourArray)
         ImGui.end()
 
         ImGui.showMetricsWindow()
-
 
         ImGui.render()
         imGuiImpGl3.renderDrawData(ImGui.getDrawData())
@@ -230,6 +236,12 @@ fun main() {
         if (windowManager.queryKeyPress(GLFW.GLFW_KEY_A)) {
             inputMoveResult -= cameraDir.cross(worldUp, Vector3f().normalize())
         }
+        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_SPACE)) {
+            inputMoveResult += worldUp
+        }
+        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+            inputMoveResult -= worldUp
+        }
 
         if (!inputMoveResult.equals(0.0f, 0.0f, 0.0f)) {
             inputMoveResult.normalize()
@@ -237,8 +249,29 @@ fun main() {
             cameraPos+= inputMoveResult
         }
 
+        //And now mouse position
+        val cursorPos = windowManager.mousePosition
+        val cursorX = cursorPos.x.toFloat()
+        val cursorY = cursorPos.y.toFloat()
+        deltaX = cursorX - lastX
+        deltaY = cursorY - lastY
+
+
+        //Because the camera is made up of an arbitrary coordinate system
+        //Just rotate around this system
+        if (windowManager.queryButtonPress(GLFW.GLFW_MOUSE_BUTTON_1)) {
+            cameraDir.rotateAxis(-deltaX * camsense, worldUp.x, worldUp.y, worldUp.z)
+            val posXDir = cameraDir.cross(worldUp, Vector3f())
+            //Screen coordinates go diff direction = angle negative
+            cameraDir.rotateAxis(-deltaY * camsense, posXDir.x, posXDir.y, posXDir.z)
+        }
+
+        lastX = cursorX
+        lastY = cursorY
+
         windowManager.swapBuffers()
         windowManager.pollEvents()
+
 
     }
 

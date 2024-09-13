@@ -1,5 +1,6 @@
 package uk.co.jcox.gl;
 
+import org.joml.Vector2d;
 import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFW;
 
@@ -8,6 +9,7 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 public class WindowManager implements AutoCloseable {
 
     private long windowHandle;
+
 
     public void init(int maj, int min) {
 
@@ -28,8 +30,19 @@ public class WindowManager implements AutoCloseable {
         GLFW.glfwSwapInterval(1);
     }
 
+    public Vector2d getMousePosition() {
+        double[] mouseX = new double[1];
+        double[] mouseY = new double[1];
+        GLFW.glfwGetCursorPos(this.windowHandle, mouseX, mouseY);
+        return new Vector2d(mouseX[0], mouseY[0]);
+    }
+
     public boolean queryKeyPress(int glfwKeyCode) {
         return GLFW.glfwGetKey(this.windowHandle, glfwKeyCode) == GLFW.GLFW_PRESS;
+    }
+
+    public boolean queryButtonPress(int glfwButtonCode) {
+        return GLFW.glfwGetMouseButton(this.windowHandle, glfwButtonCode) == GLFW.GLFW_PRESS;
     }
 
     public boolean shouldClose() {
