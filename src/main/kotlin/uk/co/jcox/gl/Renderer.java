@@ -19,7 +19,9 @@ public class Renderer implements AutoCloseable {
 
     public void setupRendering() {
         GL.createCapabilities();
+
         this.debugCallback = GLUtil.setupDebugMessageCallback();
+
         Logger.info("OpenGL Renderer has started");
         Logger.info("OpenGL Version: {}", GL11.glGetString(GL11.GL_VERSION));
         Logger.info("OpenGL Vendor: {} ", GL11.glGetString(GL11.GL_VENDOR));

@@ -192,6 +192,10 @@ fun main() {
 
         ImGui.begin("OpenGL Debug Window")
         ImGui.text("Platform: ${Platform.get()} + ${Platform.getArchitecture()}")
+        ImGui.text("OpenGL version: ${GL11.glGetString(GL11.GL_VERSION)}")
+        ImGui.text("OpenGL Renderer: ${GL11.glGetString(GL11.GL_RENDERER)}")
+        ImGui.text("OpenGL Vendor: ${GL11.glGetString(GL11.GL_VENDOR)}")
+
         if (ImGui.button("Toggle wireframe ")) {
             wireframe = !wireframe
             renderer.setWireframe(wireframe)
