@@ -17,19 +17,19 @@ public class Renderer implements AutoCloseable {
     private ShaderProgram program;
 
 
-    public void setupRendering() {
+    public void setupRendering(boolean glDebug) {
         GL.createCapabilities();
-
-        this.debugCallback = GLUtil.setupDebugMessageCallback();
-
-        Logger.info("OpenGL Renderer has started");
+        Logger.info("OpenGL renderer imported OpenGL function pointers");
         Logger.info("OpenGL Version: {}", GL11.glGetString(GL11.GL_VERSION));
         Logger.info("OpenGL Vendor: {} ", GL11.glGetString(GL11.GL_VENDOR));
         Logger.info("OpenGL Renderer: {}", GL11.glGetString(GL11.GL_RENDERER));
         Logger.info("OpenGL Shading Language: {}", GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
-
-        GL11.glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+        if (glDebug){
+            this.debugCallback = GLUtil.setupDebugMessageCallback();
+        }
+        GL11.glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
+        Logger.info("OpenGL Renderer ready...");
     }
 
     public void setupDefaultProgram() {
@@ -67,7 +67,9 @@ public class Renderer implements AutoCloseable {
 
     @Override
     public void close() {
-        this.debugCallback.close();
+        if (this.debugCallback != null) {
+            this.debugCallback.close();
+        }
         this.program.close();
     }
 }

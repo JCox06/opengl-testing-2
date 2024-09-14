@@ -25,15 +25,12 @@ fun main() {
     windowManager.init(3, 3)
 
     val renderer = Renderer()
-    renderer.setupRendering()
+    renderer.setupRendering(false)
     renderer.setupDefaultProgram()
 
 
     //Imgui init
     ImGui.createContext()
-    val imGUiIO = ImGui.getIO()
-//    imGUiIO.addConfigFlags(ImGuiConfigFlags.ViewportsEnable)
-    imGUiIO.addConfigFlags(ImGuiConfigFlags.DockingEnable)
     ImGui.styleColorsClassic()
     val imGuiImpGlfw = ImGuiImplGlfw()
     val imGuiImpGl3 = ImGuiImplGl3()
@@ -48,17 +45,17 @@ fun main() {
     val camSpeed = 1.5f
     val camSense = 0.0005f
 
-    var deltaX = 0.0f
-    var deltaY = 0.0f
+    var deltaX: Float
+    var deltaY: Float
 
     var lastX = 0.0f
     var lastY = 0.0f
 
 
-    //Textrue creation
+    //Texture creation
     val texture = loadTexture("./data/textures/wall.jpg")
 
-    //Creating the OpenGL geometry for rendering (test)
+
     val vertices = listOf(
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -116,7 +113,6 @@ fun main() {
 
     GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertices.toFloatArray(), GL15.GL_STATIC_DRAW)
 
-    //Linking vertex attributes
     val stride: Int = 5 * Float.SIZE_BYTES
     GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, stride, 0)
     GL30.glEnableVertexAttribArray(0)
@@ -132,7 +128,7 @@ fun main() {
 
     val colourArray = floatArrayOf(1.0f, 1.0f, 1.0f)
 
-    var deltaTime = 0.0f
+    var deltaTime: Float
     var lastFrameTime = 0.0f
 
     val camera = CameraBasic3D()
