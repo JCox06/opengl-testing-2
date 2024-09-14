@@ -1,22 +1,21 @@
 package uk.co.jcox.gl
 
 import imgui.ImGui
-import imgui.ImGui.render
-import imgui.ImGuiIO
 import imgui.flag.ImGuiConfigFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
-import jdk.incubator.vector.VectorOperators
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Vector3f
+import org.joml.minusAssign
+import org.joml.plusAssign
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.*
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL15
+import org.lwjgl.opengl.GL30
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.Platform
 import org.tinylog.Logger
-import java.lang.Math
-import java.util.Vector
-import kotlin.math.*
 
 fun main() {
 
@@ -46,18 +45,14 @@ fun main() {
     val newCubePos = floatArrayOf(0.0f, 0.0f, 0.0f)
     val cubes = mutableListOf<Vector3f>()
 
-    val cameraPos = Vector3f(0.0f, 0.0f, 3.0f)
-    val cameraDir = Vector3f(0.0f, 0.0f, -1.0f)
-    val worldUp = Vector3f(0.0f, 1.0f, 0.0f)
     val camSpeed = 1.5f
-    val camsense = 0.0005f
+    val camSense = 0.0005f
 
     var deltaX = 0.0f
     var deltaY = 0.0f
 
     var lastX = 0.0f
     var lastY = 0.0f
-
 
 
     //Textrue creation
@@ -137,10 +132,10 @@ fun main() {
 
     val colourArray = floatArrayOf(1.0f, 1.0f, 1.0f)
 
-    val projection = Matrix4f().perspective(Math.toRadians(45.0).toFloat(), 4/3f, 0.1f, 100.0f)
-
     var deltaTime = 0.0f
     var lastFrameTime = 0.0f
+
+    val camera = CameraBasic3D()
 
     while (! windowManager.shouldClose()) {
 
@@ -152,20 +147,10 @@ fun main() {
         renderer.viewport(windowSize.x, windowSize.y)
         renderer.clear()
 
-//        renderer.setWireframe(windowManager.queryKeyPress(GLFW.GLFW_KEY_K))
-
         renderer.program.uniform("uTint", Vector3f(colourArray[0], colourArray[1], colourArray[2]))
 
-//        val model = Matrix4f()
-//        model.rotate(windowManager.currentTime.toFloat(), Vector3f(1.0f, 1.0f, 1.0f).normalize())
 
-
-        val view = Matrix4f()
-
-        view.lookAt(cameraPos, cameraPos + cameraDir, worldUp)
-
-        renderer.program.uniform("uView", view)
-        renderer.program.uniform("uProjection", projection)
+        renderer.program.uniform("uCamera", camera.calculateCamMatrix(4/3f))
 
 
         renderer.program.uniform("ourTexture", 0)
@@ -177,15 +162,6 @@ fun main() {
             GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 36)
         }
 
-
-//        //CUSTOM RENDER START
-//        renderer.program.bind()
-//        GL30.glBindVertexArray(vertexArray)
-////        GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0)
-//        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 36)
-//        //CUSTOM RENDER END
-
-
         imGuiImpGl3.newFrame()
         imGuiImpGlfw.newFrame()
         ImGui.newFrame()
@@ -195,6 +171,8 @@ fun main() {
         ImGui.text("OpenGL version: ${GL11.glGetString(GL11.GL_VERSION)}")
         ImGui.text("OpenGL Renderer: ${GL11.glGetString(GL11.GL_RENDERER)}")
         ImGui.text("OpenGL Vendor: ${GL11.glGetString(GL11.GL_VENDOR)}")
+
+        ImGui.text("Cam Pos (${camera.position.x}, ${camera.position.y}, ${camera.position.z})")
 
         if (ImGui.button("Toggle wireframe ")) {
             wireframe = !wireframe
@@ -218,39 +196,36 @@ fun main() {
         imGuiImpGl3.renderDrawData(ImGui.getDrawData())
 
         if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-            val backupCurrentContext = GLFW.glfwGetCurrentContext();
-            ImGui.updatePlatformWindows();
-            ImGui.renderPlatformWindowsDefault();
-            GLFW.glfwMakeContextCurrent(backupCurrentContext);
+            val backupCurrentContext = GLFW.glfwGetCurrentContext()
+            ImGui.updatePlatformWindows()
+            ImGui.renderPlatformWindowsDefault()
+            GLFW.glfwMakeContextCurrent(backupCurrentContext)
         }
 
-
-        //Process input from WindowManager
-        //Remember to normalize after so you don't move faster when moving diagonally
+        camera.updateCameraCoordinateSystem()
         val inputMoveResult = Vector3f(0.0f, 0.0f, 0.0f)
         if (windowManager.queryKeyPress(GLFW.GLFW_KEY_W)) {
-            inputMoveResult += cameraDir
+            inputMoveResult += camera.forwardDirection
         }
         if (windowManager.queryKeyPress(GLFW.GLFW_KEY_S)) {
-            inputMoveResult -= cameraDir
+            inputMoveResult -= camera.forwardDirection
         }
         if (windowManager.queryKeyPress(GLFW.GLFW_KEY_D)) {
-            inputMoveResult += cameraDir.cross(worldUp, Vector3f().normalize())
+            inputMoveResult += camera.sideDirection
         }
         if (windowManager.queryKeyPress(GLFW.GLFW_KEY_A)) {
-            inputMoveResult -= cameraDir.cross(worldUp, Vector3f().normalize())
+            inputMoveResult -= camera.sideDirection
         }
         if (windowManager.queryKeyPress(GLFW.GLFW_KEY_SPACE)) {
-            inputMoveResult += worldUp
+            inputMoveResult += camera.up
         }
         if (windowManager.queryKeyPress(GLFW.GLFW_KEY_LEFT_SHIFT)) {
-            inputMoveResult -= worldUp
+            inputMoveResult -= camera.up
         }
-
         if (!inputMoveResult.equals(0.0f, 0.0f, 0.0f)) {
             inputMoveResult.normalize()
             inputMoveResult.mul(camSpeed * deltaTime)
-            cameraPos+= inputMoveResult
+            camera.position.add(inputMoveResult)
         }
 
         //And now mouse position
@@ -260,14 +235,11 @@ fun main() {
         deltaX = cursorX - lastX
         deltaY = cursorY - lastY
 
-
         //Because the camera is made up of an arbitrary coordinate system
         //Just rotate around this system
         if (windowManager.queryButtonPress(GLFW.GLFW_MOUSE_BUTTON_1)) {
-            cameraDir.rotateAxis(-deltaX * camsense, worldUp.x, worldUp.y, worldUp.z)
-            val posXDir = cameraDir.cross(worldUp, Vector3f())
-            //Screen coordinates go diff direction = angle negative
-            cameraDir.rotateAxis(-deltaY * camsense, posXDir.x, posXDir.y, posXDir.z)
+            camera.forwardDirection.rotateAxis(-deltaX * camSense, camera.up.x, camera.up.y, camera.up.z)
+            camera.forwardDirection.rotateAxis(-deltaY * camSense, camera.sideDirection.x, camera.sideDirection.y, camera.sideDirection.z)
         }
 
         lastX = cursorX
@@ -275,8 +247,6 @@ fun main() {
 
         windowManager.swapBuffers()
         windowManager.pollEvents()
-
-
     }
 
     Logger.info {"Shutting Down!"}

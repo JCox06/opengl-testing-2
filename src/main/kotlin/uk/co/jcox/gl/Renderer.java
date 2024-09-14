@@ -1,13 +1,13 @@
 package uk.co.jcox.gl;
 
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.*;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.Callback;
-import org.lwjgl.system.MemoryStack;
 import org.tinylog.Logger;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 

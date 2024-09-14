@@ -7,11 +7,10 @@ out vec3 lFragmentPos;
 out vec2 lTexCoord;
 
 uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
+uniform mat4 uCamera;
 
 void main() {
     lFragmentPos = aPos;
     lTexCoord = aTexCoord;
-    gl_Position = uProjection * uView * uModel * vec4(aPos, 1.0f);
+    gl_Position = uCamera * uModel * vec4(aPos, 1.0f);
 }
