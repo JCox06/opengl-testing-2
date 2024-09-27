@@ -10,7 +10,7 @@ class CameraBasic3D (
     val forwardDirection: Vector3f = Vector3f(0.0f, 0.0f, -1.0f),
     val up: Vector3f = Vector3f(0.0f, 1.0f, 0.0f),
     private val zNear: Float = 0.1f,
-    private val zFar: Float = 100.0f,
+    private val zFar: Float = 1000.0f,
 ) {
 
     var sideDirection = Vector3f()

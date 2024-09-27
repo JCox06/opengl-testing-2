@@ -19,8 +19,6 @@ import org.tinylog.Logger
 
 fun main() {
 
-    Logger.info {"OS: ${Platform.get()} ${Platform.getArchitecture()}"}
-
     val windowManager = WindowManager()
     windowManager.init(3, 3)
 
@@ -99,6 +97,17 @@ fun main() {
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     )
+
+    val cube = 10
+    val step = 5
+
+    for (i in 1..cube step step) {
+        for (j in 1..cube step step) {
+            for (k in 1.. cube step step) {
+                cubes.add(Vector3f(i.toFloat(), j.toFloat(), k.toFloat()))
+            }
+        }
+    }
 
     val indices = listOf(
         0, 2, 1,
@@ -224,6 +233,12 @@ fun main() {
             camera.position.add(inputMoveResult)
         }
 
+        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_UP)) {
+            camera.cameraFov++
+        }
+        if (windowManager.queryKeyPress(GLFW.GLFW_KEY_DOWN)) {
+            camera.cameraFov--
+        }
         //And now mouse position
         val cursorPos = windowManager.mousePosition
         val cursorX = cursorPos.x.toFloat()
@@ -233,7 +248,7 @@ fun main() {
 
         //Because the camera is made up of an arbitrary coordinate system
         //Just rotate around this system
-        if (windowManager.queryButtonPress(GLFW.GLFW_MOUSE_BUTTON_1)) {
+        if (windowManager.queryButtonPress(GLFW.GLFW_MOUSE_BUTTON_1) and !ImGui.isAnyItemActive()) {
             camera.forwardDirection.rotateAxis(-deltaX * camSense, camera.up.x, camera.up.y, camera.up.z)
             camera.forwardDirection.rotateAxis(-deltaY * camSense, camera.sideDirection.x, camera.sideDirection.y, camera.sideDirection.z)
         }
