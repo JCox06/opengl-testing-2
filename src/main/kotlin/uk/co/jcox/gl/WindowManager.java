@@ -1,5 +1,7 @@
 package uk.co.jcox.gl;
 
+import imgui.gl3.ImGuiImplGl3;
+import imgui.glfw.ImGuiImplGlfw;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFW;
