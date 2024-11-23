@@ -3,6 +3,7 @@ package uk.co.jcox.gl;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.joml.Vector2d;
+import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFW;
 
@@ -11,6 +12,9 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 public class WindowManager implements AutoCloseable {
 
     private long windowHandle;
+
+    private final Vector2d deltaCursorPos = new Vector2d();
+    private final Vector2d lastCursorPos = new Vector2d();
 
 
     public void init(int maj, int min) {
@@ -30,8 +34,19 @@ public class WindowManager implements AutoCloseable {
         }
         GLFW.glfwMakeContextCurrent(this.windowHandle);
         GLFW.glfwSwapInterval(1);
+
+        //ignore autoclosable - memory freed in shutdown function
+        GLFW.glfwSetCursorPosCallback(this.windowHandle, (win, xpos, ypos) -> {
+            deltaCursorPos.x = xpos - lastCursorPos.x;
+            deltaCursorPos.y = ypos - lastCursorPos.y;
+            lastCursorPos.x = xpos;
+            lastCursorPos.y = ypos;
+        });
     }
 
+
+    //todo remove but it breaks the old project
+    @Deprecated
     public Vector2d getMousePosition() {
         double[] mouseX = new double[1];
         double[] mouseY = new double[1];
@@ -72,6 +87,10 @@ public class WindowManager implements AutoCloseable {
 
     public long getWindowHandle() {
         return this.windowHandle;
+    }
+
+    public Vector2d getDeltaCursorPos() {
+        return this.deltaCursorPos;
     }
 
     @Override

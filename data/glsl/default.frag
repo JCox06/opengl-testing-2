@@ -10,6 +10,7 @@ uniform sampler2D ourTexture;
 
 void main() {
 //    colour = vec4(lFragmentPos * uGreenTint, 1.0f);
-    colour = texture(ourTexture, lTexCoord) * vec4(uTint, 1.0f);
+//    colour = texture(ourTexture, lTexCoord) * vec4(uTint, 1.0f);
+        colour = vec4(1.0f, 0.0f, 1.0f, 1.0f);
 
 }

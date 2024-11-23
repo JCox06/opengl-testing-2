@@ -38,7 +38,7 @@ public class ImGuiGlfwOpenGLImpl implements AutoCloseable{
     @Override
     public void close() {
         openGLImpl.shutdown();
-        glfwImpl.shutdown();
+//TODO        glfwImpl.shutdown(); Why does this cause null pointer?
         ImGui.destroyContext();
     }
 }

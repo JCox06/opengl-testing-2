@@ -1,12 +1,5 @@
 # OpenGL Testing 2
 
-Trying to have a go at creating an OpenGL toolkit/Engine editor
+Prototype testing system. "Engine" inits everything, each level is as minimum as possible.
 
-# Lib/Technology used
-- LWJGL
-- OpenGL
-- Kotlin And Java
-- ImGUi
-- GLFW
-- JOML
-- STB Image
+A bit ugly at the moment

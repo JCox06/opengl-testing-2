@@ -4,7 +4,7 @@ abstract class Level (
     protected val renderer: Renderer,
 ) {
 
-     open fun onLevelUpdate() {
+     open fun onLevelUpdate(windowManager: WindowManager, deltaTime: Float) {
 
      }
      open fun onLevelRender() {

@@ -2,11 +2,12 @@ package uk.co.jcox.game
 
 import uk.co.jcox.gl.Level
 import uk.co.jcox.gl.Renderer
+import uk.co.jcox.gl.WindowManager
 
 class EmptyLevel(renderer: Renderer) : Level(renderer) {
 
 
-    override fun onLevelUpdate() {
+    override fun onLevelUpdate(windowManager: WindowManager, deltaTime: Float) {
     }
 
     override fun onLevelRender() {
