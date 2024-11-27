@@ -19,11 +19,6 @@ public class Renderer implements AutoCloseable {
 
     public void setupRendering(boolean glDebug) {
         GL.createCapabilities();
-        Logger.info("OpenGL renderer imported OpenGL function pointers");
-        Logger.info("OpenGL Version: {}", GL11.glGetString(GL11.GL_VERSION));
-        Logger.info("OpenGL Vendor: {} ", GL11.glGetString(GL11.GL_VENDOR));
-        Logger.info("OpenGL Renderer: {}", GL11.glGetString(GL11.GL_RENDERER));
-        Logger.info("OpenGL Shading Language: {}", GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
         if (glDebug){
             this.debugCallback = GLUtil.setupDebugMessageCallback();
         }
