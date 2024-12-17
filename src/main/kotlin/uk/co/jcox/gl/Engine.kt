@@ -88,6 +88,8 @@ class Engine {
     private fun engineUiRender() {
         ImGui.begin("===ENGINE CORELIB UI===")
 
+        ImGui.showMetricsWindow()
+
         ImGui.textColored(1.0f, 1.0f, 0.0f, 1.0f, "System and OpenGL Renderer Info")
         ImGui.text("Platform: ${Platform.get()} ${Platform.getArchitecture()}")
         ImGui.text("OpenGL version: ${GL11.glGetString(GL11.GL_VERSION)}")
@@ -97,6 +99,7 @@ class Engine {
         ImGui.newLine()
         ImGui.separator()
         ImGui.textColored(1.0f, 1.0f, 0.0f, 1.0f, "Engine Corelib Info")
+
         ImGui.text("Information about the currently loaded level:")
         ImGui.text("Level Name: ${activeLevel.getLevelName()}")
         ImGui.text("Level ID: ${levelSelector.get()}")

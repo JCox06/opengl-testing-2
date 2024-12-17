@@ -3,6 +3,7 @@ package uk.co.jcox.gl;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.opengl.*;
+import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.Callback;
 import org.tinylog.Logger;
 
@@ -24,6 +25,10 @@ public class Renderer implements AutoCloseable {
         }
         GL11.glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(GL11.GL_BACK);
+        STBImage.stbi_set_flip_vertically_on_load(true);
+
         Logger.info("OpenGL Renderer ready...");
     }
 
@@ -71,8 +76,14 @@ public class Renderer implements AutoCloseable {
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer);
 
         GL33.glBufferData(GL33.GL_ARRAY_BUFFER, vertexData, GL33.GL_STATIC_DRAW);
-        GL33.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * Float.BYTES, 0);
+
+        int stride = 5 * Float.BYTES;
+
+        GL33.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, stride, 0);
         GL33.glEnableVertexAttribArray(0);
+
+        GL33.glVertexAttribPointer(1, 2, GL11.GL_FLOAT, false, stride, 3L * Float.BYTES);
+        GL33.glEnableVertexAttribArray(1);
 
         int indexBuffer = GL33.glGenBuffers();
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);

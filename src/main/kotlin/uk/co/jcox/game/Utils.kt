@@ -5,8 +5,12 @@ import org.joml.Vector3f
 import org.joml.minusAssign
 import org.joml.plusAssign
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.stb.STBImage
+import org.lwjgl.system.MemoryStack
 import uk.co.jcox.gl.CameraBasic3D
+import uk.co.jcox.gl.TextureData
 import uk.co.jcox.gl.WindowManager
+import java.io.File
 
 object Utils {
 
@@ -58,6 +62,23 @@ object Utils {
         if (windowManager.queryButtonPress(GLFW.GLFW_MOUSE_BUTTON_1) and !ImGui.isAnyItemActive()) {
             camera.forwardDirection.rotateAxis(-deltaX * camSense, camera.up.x, camera.up.y, camera.up.z)
             camera.forwardDirection.rotateAxis(-deltaY * camSense, camera.sideDirection.x, camera.sideDirection.y, camera.sideDirection.z)
+        }
+    }
+
+    fun loadTexture(textureLocation: File): TextureData {
+        val stringloc = textureLocation.absoluteFile.toString()
+        val stack = MemoryStack.stackPush()
+        stack.use {
+            val width = stack.mallocInt(1)
+            val height = stack.mallocInt(1)
+            val nrChannels = stack.mallocInt(1)
+            val data = STBImage.stbi_load(stringloc, width, height, nrChannels, 4)
+
+            if (data == null) {
+                throw RuntimeException()
+            }
+
+            return TextureData(width.get(), height.get(), nrChannels.get(), data)
         }
     }
 }
